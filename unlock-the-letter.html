@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unlock My Letter 💌</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink: #1a0a0f;
+  --rose: #c8455a;
+  --blush: #f2c4cc;
+  --parchment: #fdf6f0;
+  --warm: #f7ede5;
+  --gold: #c9955c;
+  --muted: #9e7070;
+  --seal: #8b2035;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--parchment);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Subtle paper texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(200,69,90,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(201,149,92,0.06) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Floating particles */
+.particle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  animation: drift linear infinite;
+  opacity: 0;
+}
+@keyframes drift {
+  0%   { transform: translateY(0) rotate(0deg);   opacity: 0; }
+  10%  { opacity: 0.35; }
+  90%  { opacity: 0.2; }
+  100% { transform: translateY(105vh) rotate(540deg); opacity: 0; }
+}
+
+/* ── Wrapper ── */
+.stage {
+  position: relative;
+  z-index: 1;
+  width: min(480px, 96vw);
+}
+
+/* ── Screens ── */
+.screen { display: none; }
+.screen.active { display: block; animation: rise 0.55s cubic-bezier(.22,1,.36,1); }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Intro ── */
+.intro-wrap {
+  text-align: center;
+  padding: 48px 32px;
+  background: white;
+  border-radius: 28px;
+  box-shadow: 0 8px 60px rgba(26,10,15,0.10), 0 1px 0 var(--blush) inset;
+  border: 1px solid rgba(200,69,90,0.12);
+}
+
+.wax-seal {
+  width: 72px; height: 72px;
+  background: radial-gradient(circle at 38% 35%, #d45c6e, var(--seal));
+  border-radius: 50%;
+  margin: 0 auto 24px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem;
+  box-shadow: 0 4px 20px rgba(139,32,53,0.35), inset 0 1px 3px rgba(255,255,255,0.2);
+  animation: sealPulse 3s ease-in-out infinite;
+}
+@keyframes sealPulse {
+  0%,100% { box-shadow: 0 4px 20px rgba(139,32,53,0.35), inset 0 1px 3px rgba(255,255,255,0.2); }
+  50%      { box-shadow: 0 6px 32px rgba(139,32,53,0.55), inset 0 1px 3px rgba(255,255,255,0.2); }
+}
+
+.intro-wrap h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.2rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.15;
+  margin-bottom: 12px;
+}
+
+.intro-wrap h1 em {
+  font-style: italic;
+  color: var(--rose);
+}
+
+.intro-wrap p {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  margin-bottom: 8px;
+}
+
+.target-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--warm);
+  border: 1px solid var(--blush);
+  border-radius: 50px;
+  padding: 8px 20px;
+  margin: 16px 0 24px;
+  font-size: 0.85rem;
+  color: var(--seal);
+  font-weight: 500;
+}
+
+.target-badge span { font-size: 1.1rem; }
+
+/* ── Button ── */
+.btn {
+  display: inline-block;
+  padding: 14px 36px;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+}
+
+.btn-rose {
+  background: var(--rose);
+  color: white;
+  box-shadow: 0 4px 20px rgba(200,69,90,0.38);
+}
+.btn-rose:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(200,69,90,0.48); }
+.btn-rose:active { transform: translateY(0); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid var(--blush);
+}
+.btn-ghost:hover { background: var(--warm); color: var(--rose); border-color: var(--rose); }
+
+/* ── Game Screen ── */
+.game-wrap {
+  background: white;
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow: 0 8px 60px rgba(26,10,15,0.10);
+  border: 1px solid rgba(200,69,90,0.12);
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 10px 16px;
+  background: var(--warm);
+  border-radius: 14px;
+  border: 1px solid var(--blush);
+}
+
+.hud-item { text-align: center; }
+.hud-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.hud-val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+}
+.hud-val.rose { color: var(--rose); }
+
+/* Progress bar */
+.progress-track {
+  height: 6px;
+  background: var(--blush);
+  border-radius: 99px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--rose), var(--gold));
+  border-radius: 99px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+#gameCanvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  background: linear-gradient(160deg, #fff5f7, #fff0ea);
+  border: 1px solid var(--blush);
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.game-hint {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* ── Result screens ── */
+.result-wrap {
+  background: white;
+  border-radius: 28px;
+  padding: 40px 32px;
+  text-align: center;
+  box-shadow: 0 8px 60px rgba(26,10,15,0.10);
+  border: 1px solid rgba(200,69,90,0.12);
+}
+
+.result-wrap h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 16px 0 10px;
+}
+.result-wrap p { color: var(--muted); font-size: 0.88rem; line-height: 1.7; margin-bottom: 16px; }
+
+.big-emoji { font-size: 3rem; display: block; margin-bottom: 4px; }
+
+.score-display {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 3.5rem;
+  font-weight: 600;
+  color: var(--rose);
+  line-height: 1;
+  margin: 8px 0;
+}
+
+.score-needed {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+/* ── Letter screen ── */
+.letter-wrap {
+  background: white;
+  border-radius: 28px;
+  box-shadow: 0 8px 60px rgba(26,10,15,0.12);
+  border: 1px solid rgba(200,69,90,0.15);
+  overflow: hidden;
+}
+
+.letter-header {
+  background: linear-gradient(135deg, var(--rose), var(--seal));
+  padding: 28px 32px 20px;
+  text-align: center;
+}
+
+.letter-header h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-style: italic;
+  color: white;
+  font-weight: 400;
+}
+
+.letter-header p {
+  color: rgba(255,255,255,0.7);
+  font-size: 0.78rem;
+  margin-top: 4px;
+}
+
+.letter-seal-top {
+  text-align: center;
+  margin-top: -18px;
+  position: relative;
+  z-index: 2;
+}
+.letter-seal-top .mini-seal {
+  display: inline-flex;
+  width: 40px; height: 40px;
+  background: radial-gradient(circle at 38% 35%, #d45c6e, var(--seal));
+  border-radius: 50%;
+  align-items: center; justify-content: center;
+  font-size: 1rem;
+  box-shadow: 0 2px 12px rgba(139,32,53,0.4);
+  border: 2px solid white;
+}
+
+.letter-body {
+  padding: 28px 32px 32px;
+}
+
+.letter-date {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-style: italic;
+  margin-bottom: 20px;
+  text-align: right;
+}
+
+/* ═══════════════════════════════════════════
+   LETTER CONTENT — EDIT EVERYTHING BELOW
+   ═══════════════════════════════════════════ */
+.letter-content {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: var(--ink);
+  white-space: pre-wrap;
+  animation: inkReveal 1.2s ease forwards;
+}
+@keyframes inkReveal {
+  from { opacity: 0; filter: blur(4px); }
+  to   { opacity: 1; filter: blur(0); }
+}
+
+.letter-sign {
+  margin-top: 24px;
+  text-align: right;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-style: italic;
+  color: var(--rose);
+}
+
+.letter-footer {
+  border-top: 1px dashed var(--blush);
+  padding: 16px 32px;
+  text-align: center;
+}
+
+/* Unlock animation overlay */
+.unlock-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(253,246,240,0.92);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  animation: overlayIn 0.3s ease;
+}
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.unlock-overlay .unlock-icon {
+  font-size: 4rem;
+  animation: popIn 0.5s cubic-bezier(.34,1.56,.64,1) 0.2s both;
+}
+@keyframes popIn {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+.unlock-overlay p {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem;
+  font-style: italic;
+  color: var(--rose);
+  animation: popIn 0.5s cubic-bezier(.34,1.56,.64,1) 0.4s both;
+}
+</style>
+</head>
+<body>
+
+<div id="particles"></div>
+
+<div class="stage">
+
+  <!-- ── INTRO ── -->
+  <div class="screen active" id="s-intro">
+    <div class="intro-wrap">
+      <div class="wax-seal">💌</div>
+      <h1>I wrote you<br>a <em>letter.</em></h1>
+      <p>But it's sealed — and only you can open it.</p>
+      <p>Catch enough hearts to break the seal. 💘</p>
+      <div class="target-badge">
+        <span>🎯</span> Reach <strong>40 hearts</strong> to unlock
+      </div>
+      <button class="btn btn-rose" onclick="goToGame()">I'm Ready 💘</button>
+    </div>
+  </div>
+
+  <!-- ── GAME ── -->
+  <div class="screen" id="s-game">
+    <div class="game-wrap">
+      <div class="hud">
+        <div class="hud-item">
+          <div class="hud-label">Hearts</div>
+          <div class="hud-val rose" id="scoreVal">0</div>
+        </div>
+        <div class="hud-item">
+          <div class="hud-label">Goal</div>
+          <div class="hud-val">40</div>
+        </div>
+        <div class="hud-item">
+          <div class="hud-label">Time</div>
+          <div class="hud-val" id="timeVal">30</div>
+        </div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <canvas id="gameCanvas" width="432" height="280"></canvas>
+      <p class="game-hint">Tap 💗 to catch &nbsp;·&nbsp; Avoid 💔 (−1)</p>
+    </div>
+  </div>
+
+  <!-- ── FAIL ── -->
+  <div class="screen" id="s-fail">
+    <div class="result-wrap">
+      <span class="big-emoji">🥺</span>
+      <h2>So close...</h2>
+      <div class="score-display" id="failScore">0</div>
+      <p class="score-needed">You needed 40 hearts to unseal the letter.</p>
+      <p>It's okay — I'll wait. Try again? 💕</p>
+      <button class="btn btn-rose" onclick="restartGame()">Try Again 💘</button>
+      &nbsp;
+      <button class="btn btn-ghost" onclick="goToIntro()">Go Back</button>
+    </div>
+  </div>
+
+  <!-- ── SUCCESS ── -->
+  <div class="screen" id="s-letter">
+    <div class="letter-wrap">
+      <div class="letter-header">
+        <h2>You unlocked my letter 💌</h2>
+        <p>I knew you could do it.</p>
+      </div>
+      <div class="letter-seal-top">
+        <div class="mini-seal">💗</div>
+      </div>
+      <div class="letter-body">
+        <div class="letter-date" id="letterDate"></div>
+
+        <!-- ════════════════════════════════════════
+             ✏️  PASTE YOUR LETTER BELOW THIS LINE
+             Replace everything inside letter-content
+             ════════════════════════════════════════ -->
+        <div class="letter-content" id="letterContent">[ Wala ng Iba pa ako lang- Yang "bow" haha.]
+
+Happy 4th mot² babyyy kooo, uhmm I just want you
+to know that I love you so much and I'm thankful
+for everything. Dimo alam kung gaano kalaki yung
+influence mo sakin, how you change my life,just
+by simply being here with me. I hope nga daghan
+patang memories together and mag dugay ta hooo,
+I really hope so. 
+Before I end my letter, kanta muna ako haha
+Walang Sagot sa tanong kung bakit ka mahalaga, 
+walang papantay sayo, maging sino man sila 
+mwaahhhhhh
+Love you Lux🌸</div>
+        <!-- ════════════════════════════════════════
+             ✏️  END OF LETTER CONTENT
+             ════════════════════════════════════════ -->
+
+        <div class="letter-sign">— with all my love 🌸</div>
+      </div>
+      <div class="letter-footer">
+        <button class="btn btn-ghost" onclick="restartGame()" style="font-size:0.8rem; padding:10px 24px;">Play Again 🔄</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Floating particles ──
+const EMOJIS = ['🌸','💗','✦','·','🌷','✿'];
+const pCont = document.getElementById('particles');
+for (let i = 0; i < 22; i++) {
+  const el = document.createElement('div');
+  el.className = 'particle';
+  el.textContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+  el.style.cssText = `
+    left:${Math.random()*100}%;
+    font-size:${0.6 + Math.random()*0.9}rem;
+    animation-duration:${9 + Math.random()*12}s;
+    animation-delay:${Math.random()*14}s;
+  `;
+  pCont.appendChild(el);
+}
+
+// ── Letter date ──
+document.getElementById('letterDate').textContent =
+  new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+// ── Screen manager ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goToIntro() { showScreen('s-intro'); }
+
+// ── Game constants ──
+const GOAL        = 40;   // hearts needed to unlock
+const GAME_TIME   = 30;   // seconds
+const SPAWN_RATE  = 550;  // ms between spawns
+const BASE_SPEED  = 1.8;
+const SPEED_BOOST = 0.04; // hearts speed up over time
+
+// ── Game state ──
+let score = 0, timeLeft = GAME_TIME, running = false;
+let hearts = [], timerInterval, spawnInterval, rafId;
+
+const canvas  = document.getElementById('gameCanvas');
+const ctx     = canvas.getContext('2d');
+
+// ── Responsive canvas ──
+function resizeCanvas() {
+  const w = canvas.offsetWidth;
+  canvas.width  = w;
+  canvas.height = Math.round(w * 0.65);
+}
+window.addEventListener('resize', () => { resizeCanvas(); });
+
+function goToGame() {
+  showScreen('s-game');
+  resizeCanvas();
+  startGame();
+}
+
+function startGame() {
+  score = 0; timeLeft = GAME_TIME; hearts = []; running = true;
+  updateHUD();
+  clearInterval(timerInterval);
+  clearInterval(spawnInterval);
+  cancelAnimationFrame(rafId);
+
+  // countdown
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateHUD();
+    if (timeLeft <= 0) endGame();
+  }, 1000);
+
+  // spawner
+  spawnInterval = setInterval(spawnHeart, SPAWN_RATE);
+
+  // draw loop
+  loop();
+}
+
+function restartGame() {
+  showScreen('s-game');
+  resizeCanvas();
+  startGame();
+}
+
+function spawnHeart() {
+  if (!running) return;
+  const isBad = Math.random() < 0.22;
+  hearts.push({
+    x: 24 + Math.random() * (canvas.width - 48),
+    y: -24,
+    speed: BASE_SPEED + (GAME_TIME - timeLeft) * SPEED_BOOST + Math.random() * 1.4,
+    size: 20 + Math.random() * 14,
+    emoji: isBad ? '💔' : '💗',
+    bad: isBad,
+    dead: false,
+    pop: 0
+  });
+}
+
+function loop() {
+  if (!running) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  hearts.forEach(h => {
+    if (h.dead) return;
+    h.y += h.speed;
+    if (h.y > canvas.height + 30) { h.dead = true; return; }
+    const scale = h.pop > 0 ? 1 + h.pop * 0.3 : 1;
+    if (h.pop > 0) h.pop -= 0.08;
+    ctx.save();
+    ctx.font = `${h.size * scale}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(h.emoji, h.x, h.y);
+    ctx.restore();
+  });
+  hearts = hearts.filter(h => !h.dead);
+  rafId = requestAnimationFrame(loop);
+}
+
+function updateHUD() {
+  document.getElementById('scoreVal').textContent  = score;
+  document.getElementById('timeVal').textContent   = timeLeft;
+  const pct = Math.min(100, (score / GOAL) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function tap(mx, my) {
+  if (!running) return;
+  for (const h of hearts) {
+    if (h.dead) continue;
+    const dx = mx - h.x, dy = my - h.y;
+    if (Math.sqrt(dx*dx + dy*dy) < h.size * 0.9) {
+      h.dead = true;
+      if (h.bad) { score = Math.max(0, score - 1); }
+      else        { score++; h.pop = 1; }
+      updateHUD();
+      break;
+    }
+  }
+}
+
+function getXY(e) {
+  const rect = canvas.getBoundingClientRect();
+  const sx = canvas.width  / rect.width;
+  const sy = canvas.height / rect.height;
+  const src = e.touches ? e.touches[0] : e;
+  return [(src.clientX - rect.left) * sx, (src.clientY - rect.top) * sy];
+}
+
+canvas.addEventListener('click',      e => tap(...getXY(e)));
+canvas.addEventListener('touchstart', e => { e.preventDefault(); tap(...getXY(e)); }, { passive: false });
+
+function endGame() {
+  running = false;
+  clearInterval(timerInterval);
+  clearInterval(spawnInterval);
+  cancelAnimationFrame(rafId);
+  hearts = [];
+
+  if (score >= GOAL) {
+    showUnlockAnim();
+  } else {
+    document.getElementById('failScore').textContent = score;
+    showScreen('s-fail');
+  }
+}
+
+function showUnlockAnim() {
+  const ov = document.createElement('div');
+  ov.className = 'unlock-overlay';
+  ov.innerHTML = `<div class="unlock-icon">💌</div><p>Letter unlocked...</p>`;
+  document.body.appendChild(ov);
+  setTimeout(() => {
+    ov.remove();
+    showScreen('s-letter');
+  }, 2200);
+}
+</script>
+</body>
+</html>
